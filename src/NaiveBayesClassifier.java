@@ -1,10 +1,6 @@
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.TreeSet;
 
 public class NaiveBayesClassifier {
@@ -16,11 +12,17 @@ public class NaiveBayesClassifier {
 	public static final String LABEL = "label";
 	public static final TreeSet<String> attributeTypes = new TreeSet<String>(
 			Arrays.asList(BINARY, CATEGORICAL, ORDINAL, CONTINUOUS, LABEL));
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+	}
+
 	// list of the type of the variables in records (ordinal, continuous, etc)
 	private ArrayList<String> attributeList = new ArrayList<>();
-	public ArrayList<String> getAttributeList() {
-		return attributeList;
-	}
 	private ArrayList<Record> records;
 	/*
 	// for continuous variables (key is column, value is range (array of len 2)
@@ -33,46 +35,86 @@ public class NaiveBayesClassifier {
 	private HashMap<String, Integer> categoricalNameToIntSymbol = new HashMap<>();
 	*/
 	private HashMap<String, Integer> labelFrequencies = new HashMap<>(10);
-	//[column][class][valueAtColumn]
+	// [column][class][valueAtColumn]
 	private double[][][] probMatrix;
-	
-	public NaiveBayesClassifier(ArrayList<Record> records, ArrayList<String> attributesTypeList){
+	private int[] numberOfValuesAtCol;
+	/*need to add data structure that keeps stdev and mean for continuous variables*/
+
+	public NaiveBayesClassifier(ArrayList<Record> records,
+			ArrayList<String> attributesTypeList) {
 		this.records = records;
 		this.attributeList = attributesTypeList;
-		this.labelFrequencies = calculateLabelFrequencies(this.records);
+		this.labelFrequencies = this.calculateLabelFrequencies(this.records);
+		this.numberOfValuesAtCol = new int[this.attributeList.size()];
 		System.out.println(this.labelFrequencies);
 	}
-	
-	public double[][][] buildProbabilityMatrix(ArrayList<Record> theRecords){
-		
+
+	public double[][][] buildProbabilityMatrix(ArrayList<Record> theRecords) {
+		double[][][] probMtrx = new double[this.attributeList.size()][][];
+
 		return null;
 	}
-	
-	public HashMap<String, Integer> calculateLabelFrequencies(ArrayList<Record> theRecords){
+
+	public HashMap<String, Integer> calculateLabelFrequencies(
+			ArrayList<Record> theRecords) {
 		HashMap<String, Integer> labelFreqs = new HashMap<>(10);
-		for(Record rec: theRecords){
+		for (Record rec : theRecords) {
 			String label = rec.getLabel();
-			if(labelFreqs.containsKey(label)){
+			if (labelFreqs.containsKey(label)) {
 				labelFreqs.put(label, labelFreqs.get(label) + 1);
-			}else{
+			} else {
 				labelFreqs.put(label, 1);
 			}
 		}
 		return labelFreqs;
 	}
-	
-	
-	
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 
+	public ArrayList<String> getAttributeList() {
+		return this.attributeList;
 	}
-	
+
+	private int[] numberOfVarsAtCol(ArrayList<Record> records) {
+		// -1 because labels is in the list
+		int numAttrs = this.attributeList.size() - 1;
+		int[] numberOfVarsAtCol = new int[numAttrs];
+
+		HashMap<Integer, TreeSet<Integer>> map = new HashMap<>();
+		for (int i = 0; i < numAttrs; i++) {
+			if (this.attributeList.get(i)
+					.equals(NaiveBayesClassifier.CONTINUOUS) == false) {
+				map.put(i, new TreeSet<>());
+			}
+		}
+		for (Record record : records) {
+			double[] attrs = record.getAttrList();
+			for (int index = 0; index < numAttrs; index++) {
+				if (map.containsKey(index)) {
+					TreeSet<Integer> localMap = map.get(index);
+					int valAtIndex = (int) attrs[index];
+					if (localMap.contains(valAtIndex) == false) {
+						localMap.add(valAtIndex);
+					}
+				}
+			}
+		}
+		for (Integer indexKey : map.keySet()) {
+			TreeSet<Integer> valuesAtColumn = map.get(indexKey);
+			numberOfVarsAtCol[indexKey] = valuesAtColumn.size();
+		}
+		return numberOfVarsAtCol;
+	}
+
+	public void numberOfVarsAtColumnTest() {
+		int[] arr = this.numberOfVarsAtCol(this.records);
+		ArrayList<Integer> arrayList = new ArrayList<>();
+		for (int my_int : arr) {
+			arrayList.add(my_int);
+		}
+		System.out.println(arrayList);
+	}
+
 	@Override
-	public String toString(){
+	public String toString() {
 		StringBuffer sBuffer = new StringBuffer("");
 		for (Record record : this.records) {
 			sBuffer.append(record.toString() + "\n");
@@ -81,45 +123,3 @@ public class NaiveBayesClassifier {
 		return sBuffer.toString();
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
