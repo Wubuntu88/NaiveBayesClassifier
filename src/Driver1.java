@@ -55,11 +55,21 @@ public class Driver1 {
 
 		String[] listOfRanges = lines.get(1).split(whitespace);
 		int[] valueOfVarAtCol = new int[listOfRanges.length];
-		for (int colIndex = 0; colIndex < listOfRanges.length - 1; colIndex++) {
+		for (int colIndex = 0; colIndex < listOfRanges.length; colIndex++) {
 			// range symbols are low to high
 			String[] strRange = listOfRanges[colIndex].split(",");
 			double[] range = new double[strRange.length];
 			String typeOfAttrAtIndex = attributeList.get(colIndex);
+			if(typeOfAttrAtIndex.equals(NaiveBayesClassifier.CONTINUOUS) == false){
+				for (String symbol : strRange) {
+					HashMap<String, Integer> hMap = symbolToIntAtColumn
+							.get(colIndex);
+					hMap.put(symbol, valueOfVarAtCol[colIndex]++);
+				}
+			}
+			
+			
+			/*
 			switch (typeOfAttrAtIndex) {
 			case NaiveBayesClassifier.ORDINAL:
 				// range symbols are low to high
@@ -85,7 +95,10 @@ public class Driver1 {
 					hMap.put(symbol, valueOfVarAtCol[colIndex]++);
 				}
 				break;
+			case NaiveBayesClassifier.LABEL:
+				
 			}
+			*/
 		}
 
 		// now I have to get all of the records
@@ -93,15 +106,27 @@ public class Driver1 {
 			String line = lines.get(i);
 			String[] comps = line.split(whitespace);
 			double[] attrs = new double[comps.length - 1];
-			String label = comps[comps.length - 1];
-			for (int colIndex = 0; colIndex < comps.length - 1; colIndex++) {
+			int label = -1;
+			//String label = comps[comps.length - 1];
+			for (int colIndex = 0; colIndex < comps.length; colIndex++) {
 				String stringValAtColIndex = comps[colIndex];
 				String typeOfAttr = attributeList.get(colIndex);
 				HashMap<String, Integer> hMap = symbolToIntAtColumn
 						.get(colIndex);
+				
+				if(typeOfAttr.equals(NaiveBayesClassifier.LABEL)){//if it is label
+					label = hMap.get(stringValAtColIndex);
+				}else if(typeOfAttr.equals(NaiveBayesClassifier.CONTINUOUS) == false){//not label or continuous
+					attrs[colIndex] = hMap.get(stringValAtColIndex);
+				}else{//if it is continuous
+					double amountAtColIndex = Double
+							.parseDouble(stringValAtColIndex);
+					attrs[colIndex] = amountAtColIndex;
+				}
+				/*
 				switch (typeOfAttr) {
 				case NaiveBayesClassifier.ORDINAL:
-					attrs[colIndex] = hMap.get(stringValAtColIndex);
+					
 					break;
 				case NaiveBayesClassifier.CONTINUOUS:// will have to normalize
 														// after
@@ -115,7 +140,10 @@ public class Driver1 {
 				case NaiveBayesClassifier.CATEGORICAL:
 					attrs[colIndex] = hMap.get(stringValAtColIndex);
 					break;
+				case NaiveBayesClassifier.LABEL:
+					
 				}
+				*/
 			}
 			Record recordToAdd = new Record(attrs, label);
 			recordsToReturn.add(recordToAdd);
