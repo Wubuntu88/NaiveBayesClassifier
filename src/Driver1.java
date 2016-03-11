@@ -40,12 +40,15 @@ public class Driver1 {
 			}
 		}
 
+		/*this data structure holds they symbol to int mapping at a column
+		 * i.e. at column 1, "java" maps to a 1 and "no" maps to a zero */
 		ArrayList<HashMap<String, Integer>> symbolToIntAtColumn = new ArrayList<>();
+		
 		for (int i = 0; i < attributeList.size(); i++) {
 			if (attributeList.get(i).equals(NaiveBayesClassifier.CONTINUOUS)) {
 				symbolToIntAtColumn.add(null);
 			} else {
-				symbolToIntAtColumn.add(new HashMap<>(10));
+				symbolToIntAtColumn.add(new HashMap<String,Integer>(10));
 			}
 
 		}
