@@ -23,7 +23,7 @@ public class NaiveBayesClassifier {
 	}
 
 	// list of the type of the variables in records (ordinal, continuous, etc)
-	private ArrayList<String> headerList = new ArrayList<>();
+	private ArrayList<String> headerList;
 	private ArrayList<Record> records;
 	/*
 	// for continuous variables (key is column, value is range (array of len 2)
@@ -38,7 +38,9 @@ public class NaiveBayesClassifier {
 	private HashMap<Integer, Double> labelProbabilities = new HashMap<>(10);
 	// [column][class][valueAtColumn]
 	private double[][][] probMatrix;
-	private int[] numberOfValuesAtCol;
+	private int[] numberOfDistinctValuesAtCol;
+	private int numberOfAttributes;
+	private int numberOfLabels;
 	/*need to add data structure that keeps stdev and mean for continuous variables*/
 	private HashMap<Integer, StatsBundle> statsInfoAtColumn;
 	
@@ -46,10 +48,14 @@ public class NaiveBayesClassifier {
 			ArrayList<String> attributesTypeList) {
 		this.records = records;
 		this.headerList = attributesTypeList;
+		this.numberOfAttributes = headerList.size() - 1;
 		this.labelProbabilities = this.calculateLabelProbabilities(this.records);
-		this.numberOfValuesAtCol = new int[this.headerList.size()];
-		System.out.println(this.labelProbabilities);
-		this.numberOfValuesAtCol = this.numberOfValuesAtCol(this.records);
+		this.numberOfDistinctValuesAtCol = new int[this.headerList.size()];
+		this.numberOfDistinctValuesAtCol = this.numberOfDistinctValuesAtCol(this.records);
+		this.numberOfLabels = this.numberOfDistinctValuesAtCol[this.numberOfDistinctValuesAtCol.length - 1];
+		// builds probability atrix for binary, categorical, and ordinal data
+		// and the hashmap that stores the mean and stdev of a column (for continuous var columns)
+		buildProbabilityDataStructures();
 	}
 	
 	public void buildProbabilityDataStructures(){
@@ -58,11 +64,44 @@ public class NaiveBayesClassifier {
 	}
 
 	public double[][][] buildProbabilityMatrix(ArrayList<Record> theRecords) {
-		double[][][] probMtrx = new double[this.headerList.size()][][];
-
-		return null;
+		double[][][] probMtrx = new double[this.headerList.size() - 1][][];
+		for(int colIndex = 0; colIndex < probMtrx.length; colIndex++){
+			probMtrx[colIndex] = probTableAtColumn(colIndex);
+		}
+		return probMtrx;
 	}
 	
+	public double[][] probTableAtColumn(int colIndex){
+		int numberOfLabels = this.numberOfDistinctValuesAtCol[this.numberOfDistinctValuesAtCol.length - 1];
+		int numberOfValuesForAttributeAtColIndex = this.numberOfDistinctValuesAtCol[colIndex];
+		double[][] probTable = new double[numberOfLabels][numberOfValuesForAttributeAtColIndex];
+		//computing the frequencies of attributes associated with a specific label
+		for(Record record: this.records){
+			int labelOfRecord = record.getLabel();
+			int valueAtColIndexOfRecord = (int) record.getAttrList()[colIndex];
+			probTable[labelOfRecord][valueAtColIndexOfRecord] += 1;
+		}
+		//computing the laplace correction
+		int numberOfRecords = this.records.size();
+		int numberOfAttributes = this.headerList.size() - 1;
+		for(int labelCounter = 0; labelCounter < numberOfLabels; labelCounter++){
+			double labelProbability = this.labelProbabilities.get(labelCounter);
+			for(int attrCounter = 0; attrCounter < numberOfValuesForAttributeAtColIndex; attrCounter++){
+				//numerator and denominator used in laplace correction
+				double numerator = probTable[labelCounter][attrCounter] + 1;
+				double denominator = (int)(labelProbability*numberOfRecords) + numberOfAttributes;
+				double result = numerator / denominator;
+				probTable[labelCounter][attrCounter] = result;
+			}
+		}
+		return probTable;
+	}
+	/**
+	 * Creates a hashmap where the key refers to a column of the records and the value
+	 * is the StatsBundle (the mean and standard deviation of the continuous values in that column)
+	 * @param theRecords
+	 * @return HashMap of the mean and stdev of the values in a column key
+	 */
 	public HashMap<Integer, StatsBundle> calculateParametersForContinuousData(ArrayList<Record> theRecords){
 		HashMap<Integer, StatsBundle> infoAtColumns = new HashMap<>();
 		
@@ -133,7 +172,7 @@ public class NaiveBayesClassifier {
 		return this.headerList;
 	}
 
-	private int[] numberOfValuesAtCol(ArrayList<Record> records) {
+	private int[] numberOfDistinctValuesAtCol(ArrayList<Record> records) {
 		// -1 because labels is in the list
 		int numberOfCols = this.headerList.size();
 		int[] numberOfVarsAtCol = new int[numberOfCols];
@@ -171,12 +210,75 @@ public class NaiveBayesClassifier {
 	}
 
 	public void numberOfVarsAtColumnTest() {
-		int[] arr = this.numberOfValuesAtCol(this.records);
+		int[] arr = this.numberOfDistinctValuesAtCol(this.records);
 		ArrayList<Integer> arrayList = new ArrayList<>();
 		for (int my_int : arr) {
 			arrayList.add(my_int);
 		}
 		System.out.println(arrayList);
+	}
+	
+	public double normal(double input, double mean, double variance){
+		double coeff = 1 / (Math.sqrt(variance*2*Math.PI));
+		double rest = Math.exp(-(Math.pow(input-mean, 2) / (2*variance)));
+		return coeff * rest;
+	}
+	
+	public ArrayList<Integer> classifyRecords(ArrayList<Record> recordsToClassify){
+		ArrayList<Integer> labels = new ArrayList<>(recordsToClassify.size());
+		for(Record record: recordsToClassify){
+			Integer label = classify(record);
+			labels.add(label);
+		}
+		return labels;
+	}
+	
+	public Integer classify(Record theRecord){
+		double maxProbability = 0;
+		int maxLabel = -1;
+		for(int labelCounter = 0; labelCounter < this.numberOfLabels; labelCounter++){
+			//probability of a record with attributes having a given label
+			double probability = findProbability(theRecord, labelCounter);
+			if(probability > maxProbability){
+				maxProbability = probability;
+				maxLabel = labelCounter;
+			}
+		}
+		return maxLabel;
+	}
+	
+	private double findProbability(Record theRecord, int label){
+		double rollingProbability = 1.0;
+		for(int attrCounter = 0; attrCounter < this.numberOfAttributes; attrCounter++){
+			if(headerList.get(attrCounter).equals(NaiveBayesClassifier.CONTINUOUS) == false){
+				int valueOfRecordAtColumn = (int)theRecord.getAttrList()[attrCounter];
+				rollingProbability *= probMatrix[attrCounter][label][valueOfRecordAtColumn];
+			}else{// if it is continuous
+				int valueOfRecordAtColumn = (int)theRecord.getAttrList()[attrCounter];
+				StatsBundle statsBundle = statsInfoAtColumn.get(attrCounter);
+				double mean = statsBundle.getMean();
+				double variance = Math.pow(statsBundle.getStdev(), 2);
+				double value = normal(valueOfRecordAtColumn, mean, variance);
+				rollingProbability *= value;
+			}
+		}
+		double labelProbability = labelProbabilities.get(theRecord.getLabel());
+		rollingProbability *= labelProbability;
+		return rollingProbability;
+	}
+	
+	public double calculateTrainingError(){
+		int numberOfMisclassifiedRecords = 0;
+		ArrayList<Integer> labelsOfClassifiedRecords = classifyRecords(this.records);
+		assert labelsOfClassifiedRecords.size() == this.records.size();
+		for(int i = 0; i < labelsOfClassifiedRecords.size(); i++){
+			int labelOfClassifiedRecord = labelsOfClassifiedRecords.get(i);
+			int labelOfRecord = this.records.get(i).getLabel();
+			if(labelOfClassifiedRecord != labelOfRecord){
+				numberOfMisclassifiedRecords++;
+			}
+		}
+		return (double)numberOfMisclassifiedRecords / labelsOfClassifiedRecords.size();
 	}
 
 	@Override
