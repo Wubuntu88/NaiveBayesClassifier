@@ -50,7 +50,6 @@ public class Driver1 {
 			} else {
 				symbolToIntAtColumn.add(new HashMap<String,Integer>(10));
 			}
-
 		}
 
 		String[] listOfRanges = lines.get(1).split(whitespace);
@@ -67,38 +66,6 @@ public class Driver1 {
 					hMap.put(symbol, valueOfVarAtCol[colIndex]++);
 				}
 			}
-			
-			
-			/*
-			switch (typeOfAttrAtIndex) {
-			case NaiveBayesClassifier.ORDINAL:
-				// range symbols are low to high
-				for (String symbol : strRange) {
-					HashMap<String, Integer> hMap = symbolToIntAtColumn
-							.get(colIndex);
-					hMap.put(symbol, valueOfVarAtCol[colIndex]++);
-				}
-				break;
-			case NaiveBayesClassifier.CONTINUOUS:
-				continue;
-			case NaiveBayesClassifier.BINARY:
-				for (String symbol : strRange) {
-					HashMap<String, Integer> hMap = symbolToIntAtColumn
-							.get(colIndex);
-					hMap.put(symbol, valueOfVarAtCol[colIndex]++);
-				}
-				break;
-			case NaiveBayesClassifier.CATEGORICAL:
-				for (String symbol : strRange) {
-					HashMap<String, Integer> hMap = symbolToIntAtColumn
-							.get(colIndex);
-					hMap.put(symbol, valueOfVarAtCol[colIndex]++);
-				}
-				break;
-			case NaiveBayesClassifier.LABEL:
-				
-			}
-			*/
 		}
 
 		// now I have to get all of the records
@@ -123,27 +90,6 @@ public class Driver1 {
 							.parseDouble(stringValAtColIndex);
 					attrs[colIndex] = amountAtColIndex;
 				}
-				/*
-				switch (typeOfAttr) {
-				case NaiveBayesClassifier.ORDINAL:
-					
-					break;
-				case NaiveBayesClassifier.CONTINUOUS:// will have to normalize
-														// after
-					double amountAtColIndex = Double
-							.parseDouble(stringValAtColIndex);
-					attrs[colIndex] = amountAtColIndex;
-					break;
-				case NaiveBayesClassifier.BINARY:
-					attrs[colIndex] = hMap.get(stringValAtColIndex);
-					break;
-				case NaiveBayesClassifier.CATEGORICAL:
-					attrs[colIndex] = hMap.get(stringValAtColIndex);
-					break;
-				case NaiveBayesClassifier.LABEL:
-					
-				}
-				*/
 			}
 			Record recordToAdd = new Record(attrs, label);
 			recordsToReturn.add(recordToAdd);
@@ -164,7 +110,8 @@ public class Driver1 {
 		}
 
 		System.out.println(nb);
-		nb.numberOfVarsAtColumnTest();
+		double trainingError = nb.calculateTrainingError();
+		System.out.println("training error: " + trainingError);
 	}
 
 }
