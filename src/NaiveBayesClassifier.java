@@ -39,7 +39,8 @@ public class NaiveBayesClassifier {
 	private double[][][] probMatrix;
 	private int[] numberOfValuesAtCol;
 	/*need to add data structure that keeps stdev and mean for continuous variables*/
-
+	private HashMap<Integer, StatsBundle> statsInfoAtColumn;
+	
 	public NaiveBayesClassifier(ArrayList<Record> records,
 			ArrayList<String> attributesTypeList) {
 		this.records = records;
@@ -52,6 +53,22 @@ public class NaiveBayesClassifier {
 	public double[][][] buildProbabilityMatrix(ArrayList<Record> theRecords) {
 		double[][][] probMtrx = new double[this.attributeList.size()][][];
 
+		return null;
+	}
+	
+	public HashMap<Integer, StatsBundle> findParametersForContinuousData(ArrayList<Record> theRecords){
+		HashMap<Integer, StatsBundle> infoAtColumn = new HashMap<>();
+		
+		HashMap<Integer, ArrayList<Double>> valuesAtColumn = new HashMap<>();
+		for(int i = 0; i <= attributeList.size() - 2; i++){//size()-2 since attrList has labels at len - 1
+			if(attributeList.get(i).equals(NaiveBayesClassifier.CONTINUOUS)){
+				valuesAtColumn.put(1, new ArrayList(theRecords.size()));
+			}
+		}
+		
+		// now I have to collect all the values at a given column and 
+		// get the mean and standard deviation, put them in the hashmap
+		// and return that hashmap.
 		return null;
 	}
 
@@ -82,7 +99,7 @@ public class NaiveBayesClassifier {
 		for (int i = 0; i < numAttrs; i++) {
 			if (this.attributeList.get(i)
 					.equals(NaiveBayesClassifier.CONTINUOUS) == false) {
-				map.put(i, new TreeSet<>());
+				map.put(i, new TreeSet<Integer>());
 			}
 		}
 		for (Record record : records) {
