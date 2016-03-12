@@ -57,7 +57,6 @@ public class Driver1 {
 		for (int colIndex = 0; colIndex < listOfRanges.length; colIndex++) {
 			// range symbols are low to high
 			String[] strRange = listOfRanges[colIndex].split(",");
-			double[] range = new double[strRange.length];
 			String typeOfAttrAtIndex = attributeList.get(colIndex);
 			if(typeOfAttrAtIndex.equals(NaiveBayesClassifier.CONTINUOUS) == false){
 				for (String symbol : strRange) {
@@ -74,7 +73,6 @@ public class Driver1 {
 			String[] comps = line.split(whitespace);
 			double[] attrs = new double[comps.length - 1];
 			int label = -1;
-			//String label = comps[comps.length - 1];
 			for (int colIndex = 0; colIndex < comps.length; colIndex++) {
 				String stringValAtColIndex = comps[colIndex];
 				String typeOfAttr = attributeList.get(colIndex);
