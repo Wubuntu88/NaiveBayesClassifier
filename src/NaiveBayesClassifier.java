@@ -50,7 +50,6 @@ public class NaiveBayesClassifier {
 		this.headerList = attributesTypeList;
 		this.numberOfAttributes = headerList.size() - 1;
 		this.labelProbabilities = this.calculateLabelProbabilities(this.records);
-		this.numberOfDistinctValuesAtCol = new int[this.headerList.size()];
 		this.numberOfDistinctValuesAtCol = this.numberOfDistinctValuesAtCol(this.records);
 		this.numberOfLabels = this.numberOfDistinctValuesAtCol[this.numberOfDistinctValuesAtCol.length - 1];
 		// builds probability atrix for binary, categorical, and ordinal data
@@ -83,14 +82,15 @@ public class NaiveBayesClassifier {
 		}
 		//computing the laplace correction
 		int numberOfRecords = this.records.size();
-		int numberOfAttributes = this.headerList.size() - 1;
 		for(int labelCounter = 0; labelCounter < numberOfLabels; labelCounter++){
 			double labelProbability = this.labelProbabilities.get(labelCounter);
 			for(int attrCounter = 0; attrCounter < numberOfValuesForAttributeAtColIndex; attrCounter++){
 				//numerator and denominator used in laplace correction
 				double numerator = probTable[labelCounter][attrCounter] + 1;
-				double denominator = (int)(labelProbability*numberOfRecords) + numberOfAttributes;
+				double denominator = (int)(labelProbability*numberOfRecords) + 
+						numberOfDistinctValuesAtCol[attrCounter];
 				double result = numerator / denominator;
+				//result = probTable[labelCounter][attrCounter] / (labelProbability*numberOfRecords);
 				probTable[labelCounter][attrCounter] = result;
 			}
 		}
