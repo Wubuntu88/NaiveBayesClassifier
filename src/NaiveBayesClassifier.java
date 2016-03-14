@@ -52,14 +52,14 @@ public class NaiveBayesClassifier {
 		this.labelProbabilities = this.calculateLabelProbabilities(this.records);
 		this.numberOfDistinctValuesAtCol = this.numberOfDistinctValuesAtCol(this.records);
 		this.numberOfLabels = this.numberOfDistinctValuesAtCol[this.numberOfDistinctValuesAtCol.length - 1];
-		// builds probability atrix for binary, categorical, and ordinal data
+		// builds probability matrix for binary, categorical, and ordinal data
 		// and the hashmap that stores the mean and stdev of a column (for continuous var columns)
-		buildProbabilityDataStructures();
+		buildProbabilityDataStructures(this.records);
 	}
 	
-	public void buildProbabilityDataStructures(){
-		this.probMatrix = this.buildProbabilityMatrix(this.records);
-		this.statsInfoAtColumn = this.calculateParametersForContinuousData(this.records);
+	public void buildProbabilityDataStructures(ArrayList<Record> recordsToUse){
+		this.probMatrix = this.buildProbabilityMatrix(recordsToUse);
+		this.statsInfoAtColumn = this.calculateParametersForContinuousData(recordsToUse);
 	}
 
 	public double[][][] buildProbabilityMatrix(ArrayList<Record> theRecords) {
@@ -90,6 +90,7 @@ public class NaiveBayesClassifier {
 				double denominator = (int)(labelProbability*numberOfRecords) + 
 						numberOfDistinctValuesAtCol[attrCounter];
 				double result = numerator / denominator;
+				//comented out is the result for the non-laplace corrected form.  It gives the same results
 				//result = probTable[labelCounter][attrCounter] / (labelProbability*numberOfRecords);
 				probTable[labelCounter][attrCounter] = result;
 			}
@@ -268,6 +269,7 @@ public class NaiveBayesClassifier {
 	}
 	
 	public double calculateTrainingError(){
+		buildProbabilityDataStructures(this.records);
 		int numberOfMisclassifiedRecords = 0;
 		ArrayList<Integer> labelsOfClassifiedRecords = classifyRecords(this.records);
 		assert labelsOfClassifiedRecords.size() == this.records.size();
@@ -279,6 +281,20 @@ public class NaiveBayesClassifier {
 			}
 		}
 		return (double)numberOfMisclassifiedRecords / labelsOfClassifiedRecords.size();
+	}
+	
+	public double calculateOneOutError(){
+		int numberOfMisclassifiedRecords = 0;
+		for(int i = 0; i < this.records.size(); i++){
+			Record recordToClassify = this.records.remove(i);
+			buildProbabilityDataStructures(this.records);
+			int label = this.classify(recordToClassify);
+			if(recordToClassify.getLabel() != label){
+				numberOfMisclassifiedRecords++;
+			}
+			this.records.add(i, recordToClassify);
+		}
+		return (double)numberOfMisclassifiedRecords / this.records.size();
 	}
 
 	@Override
