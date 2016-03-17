@@ -14,34 +14,18 @@ public class NaiveBayesClassifier {
 	public static final TreeSet<String> attributeTypes = new TreeSet<String>(
 			Arrays.asList(BINARY, CATEGORICAL, ORDINAL, CONTINUOUS, LABEL));
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
-
 	// list of the type of the variables in records (ordinal, continuous, etc)
 	private ArrayList<String> headerList;
 	private ArrayList<Record> records;
-	/*
-	// for continuous variables (key is column, value is range (array of len 2)
-	private HashMap<Integer, double[]> rangeAtColumn = new HashMap<>();
-	// for ordinal variables
-	private HashMap<Integer, HashMap<String, Double>> valsForOrdinalVarAtColumn = new HashMap<>();
-	//for binary variables
-	private HashMap<String, Integer> binaryNameToIntSymbol = new HashMap<>();
-	//for categorical variables
-	private HashMap<String, Integer> categoricalNameToIntSymbol = new HashMap<>();
-	*/
+
 	private HashMap<Integer, Double> labelProbabilities = new HashMap<>(10);
 	// [column][class][valueAtColumn]
 	private double[][][] probMatrix;
+
 	private int[] numberOfDistinctValuesAtCol;
 	private int numberOfAttributes;
 	private int numberOfLabels;
-	/*need to add data structure that keeps stdev and mean for continuous variables*/
+	/*data structure that keeps stdev and mean for continuous variables*/
 	private HashMap<Integer, StatsBundle> statsInfoAtColumn;
 	
 	public NaiveBayesClassifier(ArrayList<Record> records,
@@ -294,7 +278,42 @@ public class NaiveBayesClassifier {
 			}
 			this.records.add(i, recordToClassify);
 		}
+		//rebuild table with all records (in case the user wants to do something else with it)
+		buildProbabilityDataStructures(this.records);
 		return (double)numberOfMisclassifiedRecords / this.records.size();
+	}
+	
+	public double[][][] probMatrixCopy(){
+		double[][][] copy = new double[this.probMatrix.length][][];
+		for(int i = 0; i < copy.length; i++){
+			double[][] tableToCopyFrom = this.probMatrix[i];
+			copy[i] = new double[tableToCopyFrom.length][tableToCopyFrom[0].length];
+			for(int classCounter = 0; classCounter < copy[i].length; classCounter++){
+				copy[i][classCounter] = Arrays.copyOf(tableToCopyFrom[classCounter], tableToCopyFrom[classCounter].length);
+			}
+		}
+		return copy;
+	}
+	
+	public String laplaceProbabilitiesString(double[][][] probabilityMatrix){
+		StringBuffer sBuffer = new StringBuffer("");
+		for(int columnIndex = 0; columnIndex < probabilityMatrix.length; columnIndex++){
+			if(probabilityMatrix[columnIndex] != null){
+				//now I print the table
+				double[][] probTable = probabilityMatrix[columnIndex];
+				sBuffer.append("column index: " + columnIndex + "\n");
+				sBuffer.append("Class x valAtColumn\n");
+				for(int theClass = 0; theClass < probTable.length; theClass++){
+					sBuffer.append(theClass + " | ");
+					for(int valueAtColum = 0; valueAtColum < probTable[theClass].length; valueAtColum++){
+						sBuffer.append(String.format("%.2f, ", probTable[theClass][valueAtColum]));
+					}
+					sBuffer.replace(sBuffer.length() - 2, sBuffer.length(), "\n");
+				}
+				sBuffer.append("\n");
+			}
+		}
+		return sBuffer.toString();
 	}
 
 	@Override

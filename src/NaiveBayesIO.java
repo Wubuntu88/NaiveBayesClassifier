@@ -1,4 +1,3 @@
-import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -27,7 +26,6 @@ public class NaiveBayesIO {
 		for (String attrType : componentsOfFirstLine) {
 			if (NaiveBayesClassifier.attributeTypes.contains(attrType) == true) {
 				attributeList.add(attrType);
-				System.out.println(attrType);
 			} else {
 				throw new Exception(
 						"attribute in file not one of the correct attributes");
@@ -131,6 +129,51 @@ public class NaiveBayesIO {
 			}
 		}
 		return sBuffer.toString();
+	}
+	
+	public String probabilityMatrixStringInHumanReadableForm(double[][][] probabilityMatrix){	
+		StringBuffer sBuffer = new StringBuffer("");
+		for(int columnIndex = 0; columnIndex < probabilityMatrix.length; columnIndex++){
+			if(probabilityMatrix[columnIndex] != null){
+				//now I print the table
+				double[][] probTable = probabilityMatrix[columnIndex];
+				sBuffer.append("column index: " + columnIndex + "\n");
+				sBuffer.append("Class X valAtColumn\n");
+				
+				int len = probTable[0].length;
+				for(int i = 0; i < len; i++){
+					String strToAppend = findStringLabelForIntValue(i, columnIndex);
+					if(i == 0){
+						sBuffer.append(String.format("%10s , ", strToAppend));
+					}else if(i == len - 1){
+						sBuffer.append(String.format("%3s \n", strToAppend));
+					}else{
+						sBuffer.append(String.format("%3s , ", strToAppend));
+					}
+				}
+				
+				for(int theClass = 0; theClass < probTable.length; theClass++){
+					String className = findStringLabelForIntValue(theClass, probabilityMatrix.length);
+					sBuffer.append(String.format("%-4s | ", className));
+					for(int valueAtColum = 0; valueAtColum < probTable[theClass].length; valueAtColum++){
+						sBuffer.append(String.format("%.2f, ", probTable[theClass][valueAtColum]));
+					}
+					sBuffer.replace(sBuffer.length() - 2, sBuffer.length(), "\n");
+				}
+				sBuffer.append("\n");
+			}
+		}
+		return sBuffer.toString();
+	}
+	
+	private String findStringLabelForIntValue(int intValue, int column){
+		HashMap<String, Integer> hMap = symbolToIntAtColumn.get(column);
+		for(String key: hMap.keySet()){
+			if((int)hMap.get(key) == intValue){
+				return key;
+			}
+		}
+		return null; // if it was not found
 	}
 	
 }
