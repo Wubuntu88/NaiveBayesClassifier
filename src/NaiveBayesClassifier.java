@@ -200,7 +200,6 @@ public class NaiveBayesClassifier {
 		for (int my_int : arr) {
 			arrayList.add(my_int);
 		}
-		System.out.println(arrayList);
 	}
 	
 	public double normal(double input, double mean, double variance){
@@ -221,7 +220,7 @@ public class NaiveBayesClassifier {
 	public ClassificationInfo<Integer> classify(Record theRecord){
 		double maxProbability = 0;
 		int maxLabel = -1;
-		double sumOfProbabilities = findProbabilityOfAllClassesGivenRecord(theRecord);
+		
 		for(int labelCounter = 0; labelCounter < this.numberOfLabels; labelCounter++){
 			//probability of a record with attributes having a given label
 			double probability = findProbabilityOfLabelGivenRecord(labelCounter, theRecord);
@@ -230,6 +229,7 @@ public class NaiveBayesClassifier {
 				maxLabel = labelCounter;
 			}
 		}
+		double sumOfProbabilities = findProbabilityOfAllClassesGivenRecord(theRecord);
 		double probRatio = maxProbability / sumOfProbabilities;
 		ClassificationInfo<Integer> ci = new ClassificationInfo<Integer>(maxLabel, probRatio);
 		return ci;
@@ -250,7 +250,7 @@ public class NaiveBayesClassifier {
 				rollingProbability *= value;
 			}
 		}
-		double labelProbability = labelProbabilities.get(theRecord.getLabel());
+		double labelProbability = labelProbabilities.get(label);
 		rollingProbability *= labelProbability;
 		return rollingProbability;
 	}
