@@ -209,30 +209,33 @@ public class NaiveBayesClassifier {
 		return coeff * rest;
 	}
 	
-	public ArrayList<Integer> classifyRecords(ArrayList<Record> recordsToClassify){
-		ArrayList<Integer> labels = new ArrayList<>(recordsToClassify.size());
+	public ArrayList<ClassificationInfo<Integer>> classifyRecords(ArrayList<Record> recordsToClassify){
+		ArrayList<ClassificationInfo<Integer>> labels = new ArrayList<>(recordsToClassify.size());
 		for(Record record: recordsToClassify){
-			Integer label = classify(record);
-			labels.add(label);
+			ClassificationInfo<Integer> ci = classify(record);
+			labels.add(ci);
 		}
 		return labels;
 	}
 	
-	public Integer classify(Record theRecord){
+	public ClassificationInfo<Integer> classify(Record theRecord){
 		double maxProbability = 0;
 		int maxLabel = -1;
+		double sumOfProbabilities = findProbabilityOfAllClassesGivenRecord(theRecord);
 		for(int labelCounter = 0; labelCounter < this.numberOfLabels; labelCounter++){
 			//probability of a record with attributes having a given label
-			double probability = findProbability(theRecord, labelCounter);
+			double probability = findProbabilityOfLabelGivenRecord(labelCounter, theRecord);
 			if(probability > maxProbability){
 				maxProbability = probability;
 				maxLabel = labelCounter;
 			}
 		}
-		return maxLabel;
+		double probRatio = maxProbability / sumOfProbabilities;
+		ClassificationInfo<Integer> ci = new ClassificationInfo<Integer>(maxLabel, probRatio);
+		return ci;
 	}
 	
-	private double findProbability(Record theRecord, int label){
+	private double findProbabilityOfLabelGivenRecord(int label, Record theRecord){
 		double rollingProbability = 1.0;
 		for(int attrCounter = 0; attrCounter < this.numberOfAttributes; attrCounter++){
 			if(headerList.get(attrCounter).equals(NaiveBayesClassifier.CONTINUOUS) == false){
@@ -252,13 +255,23 @@ public class NaiveBayesClassifier {
 		return rollingProbability;
 	}
 	
+	private double findProbabilityOfAllClassesGivenRecord(Record theRecord){
+		double sumOfProbabilities = 0.0;
+		for(int labelCounter = 0; labelCounter < this.numberOfLabels; labelCounter++){
+			double probability = findProbabilityOfLabelGivenRecord(labelCounter, theRecord);
+			sumOfProbabilities += probability;
+		}
+		return sumOfProbabilities;
+	}
+	
 	public double calculateTrainingError(){
 		buildProbabilityDataStructures(this.records);
 		int numberOfMisclassifiedRecords = 0;
-		ArrayList<Integer> labelsOfClassifiedRecords = classifyRecords(this.records);
+		ArrayList<ClassificationInfo<Integer>> labelsOfClassifiedRecords = classifyRecords(this.records);
 		assert labelsOfClassifiedRecords.size() == this.records.size();
 		for(int i = 0; i < labelsOfClassifiedRecords.size(); i++){
-			int labelOfClassifiedRecord = labelsOfClassifiedRecords.get(i);
+			ClassificationInfo<Integer> ci = labelsOfClassifiedRecords.get(i);
+			int labelOfClassifiedRecord = ci.getLabel();
 			int labelOfRecord = this.records.get(i).getLabel();
 			if(labelOfClassifiedRecord != labelOfRecord){
 				numberOfMisclassifiedRecords++;
@@ -272,7 +285,7 @@ public class NaiveBayesClassifier {
 		for(int i = 0; i < this.records.size(); i++){
 			Record recordToClassify = this.records.remove(i);
 			buildProbabilityDataStructures(this.records);
-			int label = this.classify(recordToClassify);
+			int label = this.classify(recordToClassify).getLabel();
 			if(recordToClassify.getLabel() != label){
 				numberOfMisclassifiedRecords++;
 			}
@@ -293,27 +306,6 @@ public class NaiveBayesClassifier {
 			}
 		}
 		return copy;
-	}
-	
-	public String laplaceProbabilitiesString(double[][][] probabilityMatrix){
-		StringBuffer sBuffer = new StringBuffer("");
-		for(int columnIndex = 0; columnIndex < probabilityMatrix.length; columnIndex++){
-			if(probabilityMatrix[columnIndex] != null){
-				//now I print the table
-				double[][] probTable = probabilityMatrix[columnIndex];
-				sBuffer.append("column index: " + columnIndex + "\n");
-				sBuffer.append("Class x valAtColumn\n");
-				for(int theClass = 0; theClass < probTable.length; theClass++){
-					sBuffer.append(theClass + " | ");
-					for(int valueAtColum = 0; valueAtColum < probTable[theClass].length; valueAtColum++){
-						sBuffer.append(String.format("%.2f, ", probTable[theClass][valueAtColum]));
-					}
-					sBuffer.replace(sBuffer.length() - 2, sBuffer.length(), "\n");
-				}
-				sBuffer.append("\n");
-			}
-		}
-		return sBuffer.toString();
 	}
 
 	@Override

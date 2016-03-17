@@ -12,7 +12,7 @@ public class NaiveBayesIO {
 	 * column 1, "java" maps to a 1 and "no" maps to a zero
 	 */
 	private ArrayList<HashMap<String, Integer>> symbolToIntAtColumn = new ArrayList<>();
-
+	private ArrayList<String> attributeList = new ArrayList<>();
 	public NaiveBayesClassifier instantiateNBClassifierWithTrainingData(
 			String fileName) throws Exception {
 		ArrayList<Record> recordsToReturn = new ArrayList<>();
@@ -22,7 +22,6 @@ public class NaiveBayesIO {
 				Charset.defaultCharset());
 		// first line ( these is the attribute types )
 		String[] componentsOfFirstLine = lines.get(0).split(whitespace);
-		ArrayList<String> attributeList = new ArrayList<>();
 		for (String attrType : componentsOfFirstLine) {
 			if (NaiveBayesClassifier.attributeTypes.contains(attrType) == true) {
 				attributeList.add(attrType);
@@ -82,6 +81,37 @@ public class NaiveBayesIO {
 			recordsToReturn.add(recordToAdd);
 		}
 		return new NaiveBayesClassifier(recordsToReturn, attributeList);
+	}//end of instantiate naive bayes classifier
+	
+	public ArrayList<Record> readRecordsFromFile(String fileName) throws Exception{
+		ArrayList<Record> recordsToReturn = new ArrayList<>();
+		String whitespace = "[ ]+";
+		List<String> lines = Files.readAllLines(Paths.get(fileName), Charset.defaultCharset());;
+		for(String line: lines){
+			String[] comps = line.split(whitespace);
+			double[] attrs = new double[comps.length - 1];
+			int label = -1;
+			for (int colIndex = 0; colIndex < comps.length - 1; colIndex++) {//-1 because no label
+				String stringValAtColIndex = comps[colIndex];
+				String typeOfAttr = attributeList.get(colIndex);
+				HashMap<String, Integer> hMap = symbolToIntAtColumn
+						.get(colIndex);
+
+				if (typeOfAttr.equals(NaiveBayesClassifier.LABEL)) {// if it is
+																	// label
+					label = hMap.get(stringValAtColIndex);
+				} else if (typeOfAttr.equals(NaiveBayesClassifier.CONTINUOUS) == false) {
+					attrs[colIndex] = hMap.get(stringValAtColIndex);
+				} else {// if it is continuous
+					double amountAtColIndex = Double
+							.parseDouble(stringValAtColIndex);
+					attrs[colIndex] = amountAtColIndex;
+				}
+			}
+			Record recordToAdd = new Record(attrs, label);
+			recordsToReturn.add(recordToAdd);
+		}
+		return recordsToReturn;
 	}
 	
 	public void writeRecordsToFile(String fileName, ArrayList<Record> recordsToPrint){
@@ -101,7 +131,6 @@ public class NaiveBayesIO {
 		}
 		sBuffer.replace(sBuffer.length() - 1, sBuffer.length(), "");
 		System.out.println(sBuffer);
-		//pw.close();
 	}
 	
 	private String convertRecordToHumanReadableString(Record record){
