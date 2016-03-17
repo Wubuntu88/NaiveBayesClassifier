@@ -1,3 +1,4 @@
+import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -89,16 +90,14 @@ public class NaiveBayesIO {
 		List<String> lines = Files.readAllLines(Paths.get(fileName), Charset.defaultCharset());;
 		for(String line: lines){
 			String[] comps = line.split(whitespace);
-			double[] attrs = new double[comps.length - 1];
+			double[] attrs = new double[comps.length];
 			int label = -1;
-			for (int colIndex = 0; colIndex < comps.length - 1; colIndex++) {//-1 because no label
+			for (int colIndex = 0; colIndex < comps.length; colIndex++) {
 				String stringValAtColIndex = comps[colIndex];
 				String typeOfAttr = attributeList.get(colIndex);
 				HashMap<String, Integer> hMap = symbolToIntAtColumn
 						.get(colIndex);
-
-				if (typeOfAttr.equals(NaiveBayesClassifier.LABEL)) {// if it is
-																	// label
+				if (typeOfAttr.equals(NaiveBayesClassifier.LABEL)) {// if it is label
 					label = hMap.get(stringValAtColIndex);
 				} else if (typeOfAttr.equals(NaiveBayesClassifier.CONTINUOUS) == false) {
 					attrs[colIndex] = hMap.get(stringValAtColIndex);
@@ -114,23 +113,30 @@ public class NaiveBayesIO {
 		return recordsToReturn;
 	}
 	
-	public void writeRecordsToFile(String fileName, ArrayList<Record> recordsToPrint){
+	public void writeRecordsToFile(String fileName, 
+			ArrayList<Record> recordsToPrint, ArrayList<ClassificationInfo<Integer>> classificationInfos){
+		assert recordsToPrint.size() == classificationInfos.size();
 		/*
 		PrintWriter pw = null;
 		try {
-			pw = new PrintWriter("testOutput.txt");
+			pw = new PrintWriter(fileName);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			return;
 		}
 		*/
 		StringBuffer sBuffer = new StringBuffer("");
+		int index = 0;
 		for(Record record: recordsToPrint){
-			String recordDescriptionForHuman = convertRecordToHumanReadableString(record);
-			sBuffer.append(recordDescriptionForHuman + "\n");
+			ClassificationInfo<Integer> ci = classificationInfos.get(index);
+			Record rec = new Record(record.getAttrList(), ci.getLabel());
+			String recordDescriptionForHuman = convertRecordToHumanReadableString(rec);
+			sBuffer.append(recordDescriptionForHuman + "confidence: " + ci.getConfidenceLevel() + "\n");
+			index++;
 		}
 		sBuffer.replace(sBuffer.length() - 1, sBuffer.length(), "");
 		System.out.println(sBuffer);
+		
 	}
 	
 	private String convertRecordToHumanReadableString(Record record){
