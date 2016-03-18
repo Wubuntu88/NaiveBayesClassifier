@@ -72,10 +72,10 @@ public class NaiveBayesClassifier {
 				//numerator and denominator used in laplace correction
 				double numerator = probTable[labelCounter][attrCounter] + 1;
 				double denominator = (int)(labelProbability*numberOfRecords) + 
-						numberOfDistinctValuesAtCol[attrCounter];
+						numberOfValuesForAttributeAtColIndex;
 				double result = numerator / denominator;
 				//comented out is the result for the non-laplace corrected form.  It gives the same results
-				//result = probTable[labelCounter][attrCounter] / (labelProbability*numberOfRecords);
+				//result = probTable[labelCounter][attrCounter] / (double)(int)(labelProbability*numberOfRecords);
 				probTable[labelCounter][attrCounter] = result;
 			}
 		}
