@@ -17,7 +17,7 @@ public class NB_Driver1 {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		
 		/* a) Classification of records in test file (stored in part1/output1)*/
 		ArrayList<Record> recordsToClassify = null;
 		try {
