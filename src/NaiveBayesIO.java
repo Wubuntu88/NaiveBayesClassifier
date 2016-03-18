@@ -116,7 +116,7 @@ public class NaiveBayesIO {
 	public void writeRecordsToFile(String fileName, 
 			ArrayList<Record> recordsToPrint, ArrayList<ClassificationInfo<Integer>> classificationInfos){
 		assert recordsToPrint.size() == classificationInfos.size();
-		/*
+		
 		PrintWriter pw = null;
 		try {
 			pw = new PrintWriter(fileName);
@@ -124,19 +124,20 @@ public class NaiveBayesIO {
 			e.printStackTrace();
 			return;
 		}
-		*/
+		
 		StringBuffer sBuffer = new StringBuffer("");
 		int index = 0;
 		for(Record record: recordsToPrint){
 			ClassificationInfo<Integer> ci = classificationInfos.get(index);
 			Record rec = new Record(record.getAttrList(), ci.getLabel());
 			String recordDescriptionForHuman = convertRecordToHumanReadableString(rec);
-			sBuffer.append(recordDescriptionForHuman + "confidence: " + ci.getConfidenceLevel() + "\n");
+			sBuffer.append(recordDescriptionForHuman);
+			sBuffer.append(String.format("; confidence: %.2f\n", ci.getConfidenceLevel()));
 			index++;
 		}
 		sBuffer.replace(sBuffer.length() - 1, sBuffer.length(), "");
-		System.out.println(sBuffer);
-		
+		pw.write(sBuffer.toString());
+		pw.close();
 	}
 	
 	private String convertRecordToHumanReadableString(Record record){
