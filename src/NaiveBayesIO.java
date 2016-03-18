@@ -56,7 +56,7 @@ public class NaiveBayesIO {
 		}
 
 		// now I have to get all of the records
-		for (int i = 2; i < lines.size(); i++) {
+		for (int i = 2; i < lines.size(); i++) {	
 			String line = lines.get(i);
 			String[] comps = line.split(whitespace);
 			double[] attrs = new double[comps.length - 1];
