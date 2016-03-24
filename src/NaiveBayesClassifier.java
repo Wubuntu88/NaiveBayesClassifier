@@ -3,7 +3,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.TreeSet;
-
+/*
+ * @author: William Gillespie
+ */
 public class NaiveBayesClassifier {
 
 	public static final String BINARY = "binary";

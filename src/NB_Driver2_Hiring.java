@@ -4,6 +4,7 @@ import java.util.ArrayList;
 public class NB_Driver2_Hiring {
 
 	public static void main(String[] args) {
+		System.out.println("Naive Bayes part 2 (bank hiring): William Gillespie");
 		String trainingFileName = "part1/myTrain2";
 		String testFileName = "part1/test2";
 		String outputFileName = "part1/output2";

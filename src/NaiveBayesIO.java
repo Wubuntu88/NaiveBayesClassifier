@@ -6,7 +6,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
+/*
+ * @author: William Gillespie
+ * IO class for a naive bayes IO.  This class does book keeping and pretty printing.
+ */
 public class NaiveBayesIO {
 	/*
 	 * this data structure holds they symbol to int mapping at a column i.e. at
@@ -210,34 +213,5 @@ public class NaiveBayesIO {
 			}
 		}
 		return null; // if it was not found
-	}
-	
+	}	
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
